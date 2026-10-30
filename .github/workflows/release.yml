@@ -1,0 +1,59 @@
+name: 多平台自动化编译发布 (Build and Release Assets)
+
+# 🚀 触发时机：只有当你往代码库推送一个以小写 "v" 开头的版本号标签（如 v1.0.0）时，流水线才会启动
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    name: 交叉编译多平台单文件
+    runs-on: ubuntu-latest
+    steps:
+      # 1. 自动将你推送到 GitHub 的最新完整源码拉取到云端虚拟机中
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # 2. 在云端机器上快速搭建标准的 Go 语言开发与编译环境
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22' # 严格对齐你 Rocky Linux 本地的 Go 编译器版本
+
+      # 3. 核心：执行无外部依赖的并发交叉编译（CGO_ENABLED=0 确保绝对零依赖）
+      - name: Build Multi-Platform Binaries
+        run: |
+          mkdir -p build_assets
+          
+          # 💡 编译 Linux 64位（适用于绝大部分标准的生产环境服务器，如你的 Rocky Linux/CentOS/Ubuntu）
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o build_assets/auth-proxy-linux-amd64 main.go
+          
+          # 💡 编译 Linux ARM64位（适用于最新的国产国产信创服务器、华为鲲鹏、以及树莓派等）
+          CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -ldflags="-s -w" -o build_assets/auth-proxy-linux-arm64 main.go
+          
+          # 💡 编译 Windows 64位（全自动打包生成标准的 .exe 独立运行程序）
+          CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o build_assets/auth-proxy-windows-amd64.exe main.go
+          
+          # 💡 编译 Mac 64位（适用于搭载 Intel 芯片的老款苹果电脑）
+          CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o build_assets/auth-proxy-darwin-amd64 main.go
+          
+          # 💡 编译 Mac ARM64位（适用于搭载 M1/M2/M3/M4 苹果自研芯片的新款电脑）
+          CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -o build_assets/auth-proxy-darwin-arm64 main.go
+
+      # 4. 终极打包：全自动在你的 GitHub 仓库中创建一个漂亮的 Release 页面，并将编译好的这 5 个成品单文件塞进资产下载列表中
+      - name: Auto Publish Release and Assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            build_assets/auth-proxy-linux-amd64
+            build_assets/auth-proxy-linux-arm64
+            build_assets/auth-proxy-windows-amd64.exe
+            build_assets/auth-proxy-darwin-amd64
+            build_assets/auth-proxy-darwin-arm64
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # 利用 GitHub 原生自带的安全密匙进行合规授权
+

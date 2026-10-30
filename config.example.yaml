@@ -1,0 +1,38 @@
+# 1. 端口监听配置：可同时启动多组普通 HTTP 端口和 SSL HTTPS 端口
+listeners:
+  - http_port: ":80"            # 普通 HTTP 监听端口
+    https_port: ":443"          # SSL HTTPS 监听端口（如果不启用HTTPS，三项留空即可）
+    ssl_crt: "/root/email-auth-proxy/ssl/fullchain.pem" # 你的域名证书路径
+    ssl_key: "/root/email-auth-proxy/ssl/privkey.pem" # 你的域名私钥路径
+
+# 2. 统一全局认证与 Cookie 状态管理
+server:
+  cookie_name: "auth_session"
+  cookie_domain: ".yourdomain.com"     # ⚠️ 设为主域名作用域，所有子域名即可无缝共享登录状态
+  max_body_size: 209715200             #如200M ，1024*1024*200=209715200
+
+auth:
+  session_ttl: 172800              # 登录状态总保持时长（秒，此处为48小时3600*48=172800）
+  renew_trigger_ttl: 86400        # 智能平滑续期触发线（秒）：少于此剩余时间时自动刷新为满额 TTL。未配置默认关闭
+  allowed_emails:                # 白名单
+    - "yourname@yourdomain.com"
+    - "ortheremail@cyourdomain.com"
+  admin_emails:          # ⚠️ 新增：只有在这里登记的邮箱，才有权限访问网页端会话监控面板
+    - "admin@cyourdomain.com"    
+
+# 3. 自适应发信服务器配置（完美支持自建邮、企业邮双模）
+smtp:
+  host: "smtp.yourhost.com"          #腾讯qq的:smtp.qq.com
+  port: "465"                    # 端口号（例如 465, 587, 25）
+  ssl_enabled: true             # ⚠️ 新增：true 代表465纯SSL加密；false代表25/587非纯SSL(支持自动升级STARTTLS)
+  user: "yourusername"
+  pass: "yourpassword"
+# 4. 高级动态路由分发表：一个认证同时对应分发多个子域名与后缀路径
+routes:
+  - host: "host1.yourdomain.com"         # 访问当前域名时
+    path: "/"                    # 匹配的根路径
+    backend: "http://127.0.0.1:8888" # 转发给后端真实业务系统 A
+  
+  - host: "host2.yourdomain.com"        # 访问当前域名时
+    path: "/"
+    backend: "http://192.168.0.2:8080" # 转发给后端真实业务系统 B
