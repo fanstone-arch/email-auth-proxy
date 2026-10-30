@@ -37,6 +37,7 @@
 
 在程序同级目录下创建 config.yaml，内容如下：
 yaml
+[code]
 # 1. 端口监听配置：可同时启动多组普通 HTTP 端口和 SSL HTTPS 端口
 listeners:
   - http_port: ":80"            # 普通 HTTP 监听端口
@@ -75,7 +76,7 @@ routes:
   - host: "host2.yourdomain.com"        # 访问当前域名时
     path: "/"
     backend: "http://192.168.0.2:8080" # 转发给后端真实业务系统 B
-Use code with caution.
+[/code]
 
 2. 部署运行
 
@@ -86,7 +87,7 @@ Use code with caution.
 bash
 chmod +x ./auth-proxy
 ./auth-proxy -config /etc/auth-proxy/config.yaml
-Use code with caution.
+
 
 方式 B：Linux 生产环境守护进程 (Systemd)
 
