@@ -229,27 +229,20 @@ func handleProxyGateway(w http.ResponseWriter, r *http.Request) {
 	// 我们严格检查当前请求的路径是否属于管理面板或驱动 API
 	if r.URL.Path == "/auth/admin/monitor" || r.URL.Path == "/auth/admin/api/list" || r.URL.Path == "/auth/admin/api/kick" {
 		cookie, err := r.Cookie(cfg.Server.CookieName)
-		if err == nil {
-			if val, found := sessionsStore.Load(cookie.Value); found {
-				currentEmail := strings.ToLower(val.(sessionRecord).Email)
-				
-				// 🛡️ 身份验证：如果确实是合法的管理员，就地完美截断并驱动大屏！
-				if adminMap[currentEmail] {
-					if r.URL.Path == "/auth/admin/monitor" {
-						handleMonitorPage(w, r)
-						return
-					}
-					if r.URL.Path == "/auth/admin/api/list" {
-						handleSessionListAPI(w, r)
-						return
-					}
-					if r.URL.Path == "/auth/admin/api/kick" {
-						handleKickSessionAPI(w, r)
-						return
-					}
+			if err != nil || !validateSession(cookie.Value, w) {
+				scheme := "http"
+				if r.TLS != nil {
+					scheme = "https"
 				}
+				
+				// 💡 终极修复：这里强制使用浏览器带过来的、最原始、原汁原味带端口的 r.Host（例如 tax.yourdomain.cn:81）
+				// 绝对不能使用被裁剪了端口的临时域名变量！
+				originalTarget := fmt.Sprintf("%s://%s%s", scheme, r.Host, r.URL.RequestURI())
+				loginURL := fmt.Sprintf("%s://%s/auth/login-page?target=%s", scheme, r.Host, url.QueryEscape(originalTarget))
+				
+				http.Redirect(w, r, loginURL, http.StatusFound)
+				return
 			}
-		}
 		
 		// 💡 智能分流：如果是普通员工（非管理员），代码会自动流到这里，
 		// 跳过本地大屏渲染，原原封不动地发给后端业务系统，安全无冲突！
