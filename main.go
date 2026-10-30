@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"encoding/hex"
 	"encoding/json"
+	"flag" 
 	"fmt"
 	"io"
 	"log"
@@ -84,6 +85,7 @@ var (
 	allowedMap    = make(map[string]bool)
 	adminMap      = make(map[string]bool)
 	globalBufPool *byteBufferPool
+	configPath    string
 )
 
 type byteBufferPool struct {
@@ -93,7 +95,16 @@ func (p *byteBufferPool) Get() []byte  { return p.pool.Get().([]byte) }
 func (p *byteBufferPool) Put(b []byte) { p.pool.Put(b) }
 
 func main() {
-	loadConfig("config.yaml")
+	// 1. ⚙️ 定义命令行参数：参数名叫 -config，默认值是 "config.yaml"，后面是功能说明
+	flag.StringVar(&configPath, "config", "config.yaml", "指定配置文件 config.yaml 的绝对或相对路径")
+	
+	// 2. 核心：让 Go 开始解析输入执行的参数
+	flag.Parse()
+
+	// 3. ⚠️ 动态加载：把解析到的 configPath 传给加载函数，不再写死文件名
+	loadConfig(configPath)
+
+
 
 	for _, email := range cfg.Auth.AllowedEmails {
 		allowedMap[strings.ToLower(email)] = true
