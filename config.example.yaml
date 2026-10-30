@@ -1,14 +1,14 @@
 # 1. 端口监听配置：可同时启动多组普通 HTTP 端口和 SSL HTTPS 端口
 listeners:
   - http_port: ":80"            # 普通 HTTP 监听端口
-    https_port: ":443"          # SSL HTTPS 监听端口（如果不启用HTTPS，三项留空即可）
-    ssl_crt: "/root/email-auth-proxy/ssl/fullchain.pem" # 你的域名证书路径
-    ssl_key: "/root/email-auth-proxy/ssl/privkey.pem" # 你的域名私钥路径
+    #https_port: ":443"          # SSL HTTPS 监听端口（如果启用HTTPS，三项注销并填写响应的内容）
+    #ssl_crt: "/root/email-auth-proxy/ssl/fullchain.pem" # 你的域名证书路径
+    #ssl_key: "/root/email-auth-proxy/ssl/privkey.pem" # 你的域名私钥路径
 
 # 2. 统一全局认证与 Cookie 状态管理
 server:
   cookie_name: "auth_session"
-  cookie_domain: ".yourdomain.com"     # ⚠️ 设为主域名作用域，所有子域名即可无缝共享登录状态
+  cookie_domain: ".yourdomain.com"     # ⚠️ 设为主域名作用域，所有子域名即可无缝共享登录状态,若使用ip，则这里和route的host都是ip
   max_body_size: 209715200             #如200M ，1024*1024*200=209715200
 
 auth:
