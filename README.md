@@ -1,6 +1,3 @@
-
-Light-Auth-Proxy (轻量级零信任邮箱验证码认证网关)
-
 🎨 零依赖、高性能、单文件的通用反向代理身份认证网关。支持通过企业/个人邮箱验证码，对任意后端 Web 系统（如泛微 OA、NAS 控制台、Jenkins、GitLab 等）实施前置接入零信任（ZTA）安全合规拦截。
 
 📖 项目背景与痛点
@@ -43,7 +40,7 @@ yaml
 # 1. 端口监听配置：可同时启动多组普通 HTTP 端口和 SSL HTTPS 端口
 listeners:
   - http_port: ":80"            # 普通 HTTP 监听端口
-    #https_port: ":443"          # SSL HTTPS 监听端口（如果启用HTTPS，三项注销并填写相应的内容）
+    #https_port: ":443"          # SSL HTTPS 监听端口（如果启用HTTPS，三项注销并填写响应的内容）
     #ssl_crt: "/root/email-auth-proxy/ssl/fullchain.pem" # 你的域名证书路径
     #ssl_key: "/root/email-auth-proxy/ssl/privkey.pem" # 你的域名私钥路径
 
